@@ -3,6 +3,9 @@ package client
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
 )
 
@@ -26,4 +29,31 @@ func (c *Client) Do(ctx context.Context, method, uri string, body []byte) (*http
 	}
 	req.Header.Set("Content-Type", "application/json")
 	return httpClient.Do(req)
+}
+
+// GetPaySig 计算 pay_sig，算法为 HMAC-SHA256(appKey, uri+"&"+body)。
+func (c *Client) GetPaySig(uri string, body []byte) string {
+	return GetPaySig(uri, body, c.AppKeyProvider)
+}
+
+// GetUserSignature 计算用户态签名，算法为 HMAC-SHA256(appKey, body)。
+func (c *Client) GetUserSignature(body []byte) string {
+	return GetUserSignature(body, c.AppKeyProvider)
+}
+
+// GetPaySig 计算 pay_sig，算法为 HMAC-SHA256(appKey, uri+"&"+body)。
+func GetPaySig(uri string, body []byte, appKey string) string {
+	msg := uri + "&" + string(body)
+	return hmacHex(appKey, msg)
+}
+
+// GetUserSignature 计算用户态签名，算法为 HMAC-SHA256(appKey, body)。
+func GetUserSignature(body []byte, appKey string) string {
+	return hmacHex(appKey, string(body))
+}
+
+func hmacHex(key, msg string) string {
+	mac := hmac.New(sha256.New, []byte(key))
+	_, _ = mac.Write([]byte(msg))
+	return hex.EncodeToString(mac.Sum(nil))
 }

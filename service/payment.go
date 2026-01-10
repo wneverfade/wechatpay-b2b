@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/enjoy322/wechatpay-b2b/client"
-	"github.com/enjoy322/wechatpay-b2b/signer"
 	"github.com/enjoy322/wechatpay-b2b/types"
 )
 
@@ -15,20 +14,29 @@ type PaymentService struct {
 	Client *client.Client
 }
 
-// BuildCommonPaymentParams 生成小程序 wx.requestCommonPayment 所需参数。
-// uri 必须与计算 paySig 的服务端 API 路径一致（例如 /retail/B2b/getorder）。
-func (s *PaymentService) BuildCommonPaymentParams(ctx context.Context, uri string, signData any, appKey, sessionKey, mode string) (*types.CommonPaymentParams, error) {
-	if appKey == "" {
-		return nil, errors.New("appKey is required")
+const combinePayURI = "/retail/B2b/combinepay"
+
+// BuildCombinedPaymentParams 生成合单支付参数，用于小程序 wx.requestCommonPayment。
+func (s *PaymentService) BuildCombinedPaymentParams(ctx context.Context, req types.CombinedPaymentSignData) (*types.CommonPaymentParams, error) {
+	if s.Client == nil {
+		return nil, errors.New("client is nil")
 	}
-	body, err := json.Marshal(signData)
+	if s.Client.AppKeyProvider == "" {
+		return nil, errors.New("appKeyProvider is empty")
+	}
+	if len(req.CombinedOrderList) == 0 {
+		return nil, errors.New("combined_order_list is required")
+	}
+
+	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
 	}
+
 	return &types.CommonPaymentParams{
 		SignData:  string(body),
-		Mode:      mode,
-		PaySig:    signer.PaySig(uri, body, appKey),
-		Signature: signer.UserSignature(body, sessionKey),
+		Mode:      "0",
+		PaySig:    s.Client.GetPaySig(combinePayURI, body),
+		Signature: s.Client.GetUserSignature(body),
 	}, nil
 }

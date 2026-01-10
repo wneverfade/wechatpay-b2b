@@ -10,7 +10,6 @@ import (
 	"net/url"
 
 	"github.com/enjoy322/wechatpay-b2b/client"
-	"github.com/enjoy322/wechatpay-b2b/signer"
 	"github.com/enjoy322/wechatpay-b2b/types"
 )
 
@@ -55,7 +54,7 @@ func (s *balanceService) GetBalance(ctx context.Context, req types.BalanceReques
 		return nil, err
 	}
 
-	paySig := signer.PaySig(getMchBalanceURI, body, s.client.AppKeyProvider)
+	paySig := s.client.GetPaySig(getMchBalanceURI, body)
 	query := url.Values{}
 	query.Set("access_token", s.client.TokenProvider)
 	query.Set("pay_sig", paySig)

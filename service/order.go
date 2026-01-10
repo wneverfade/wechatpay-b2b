@@ -10,7 +10,6 @@ import (
 	"net/url"
 
 	"github.com/enjoy322/wechatpay-b2b/client"
-	"github.com/enjoy322/wechatpay-b2b/signer"
 	"github.com/enjoy322/wechatpay-b2b/types"
 )
 
@@ -38,7 +37,7 @@ func (s *OrderService) CloseOrder(ctx context.Context, req types.CloseOrderReque
 		return nil, err
 	}
 
-	paySig := signer.PaySig(closeOrderURI, body, s.Client.AppKeyProvider)
+	paySig := s.Client.GetPaySig(closeOrderURI, body)
 	query := url.Values{}
 	query.Set("access_token", s.Client.TokenProvider)
 	query.Set("pay_sig", paySig)
@@ -82,7 +81,7 @@ func (s *OrderService) GetOrder(ctx context.Context, req types.GetOrderRequest) 
 		return nil, err
 	}
 
-	paySig := signer.PaySig(getOrderURI, body, s.Client.AppKeyProvider)
+	paySig := s.Client.GetPaySig(getOrderURI, body)
 	query := url.Values{}
 	query.Set("access_token", s.Client.TokenProvider)
 	query.Set("pay_sig", paySig)

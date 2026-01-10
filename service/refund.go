@@ -10,7 +10,6 @@ import (
 	"net/url"
 
 	"github.com/enjoy322/wechatpay-b2b/client"
-	"github.com/enjoy322/wechatpay-b2b/signer"
 	"github.com/enjoy322/wechatpay-b2b/types"
 )
 
@@ -50,7 +49,7 @@ func (s *RefundService) CreateRefund(ctx context.Context, req types.RefundReques
 		return nil, err
 	}
 
-	paySig := signer.PaySig(createRefundURI, body, s.Client.AppKeyProvider)
+	paySig := s.Client.GetPaySig(createRefundURI, body)
 	query := url.Values{}
 	query.Set("access_token", s.Client.TokenProvider)
 	query.Set("pay_sig", paySig)
@@ -103,7 +102,7 @@ func (s *RefundService) GetRefund(ctx context.Context, req types.GetRefundReques
 		return nil, err
 	}
 
-	paySig := signer.PaySig(getRefundURI, body, s.Client.AppKeyProvider)
+	paySig := s.Client.GetPaySig(getRefundURI, body)
 	query := url.Values{}
 	query.Set("access_token", s.Client.TokenProvider)
 	query.Set("pay_sig", paySig)
