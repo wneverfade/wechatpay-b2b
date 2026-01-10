@@ -14,8 +14,15 @@ import (
 )
 
 // OrderService 处理订单查询、关单相关调用。
-type OrderService struct {
-	Client *client.Client
+type OrderService interface {
+	// CloseOrder 关闭订单。
+	CloseOrder(ctx context.Context, req types.CloseOrderRequest) (*types.CloseOrderResponse, error)
+	// GetOrder 查询订单。
+	GetOrder(ctx context.Context, req types.GetOrderRequest) (*types.GetOrderResponse, error)
+}
+
+type orderService struct {
+	client *client.Client
 }
 
 const (
@@ -23,9 +30,14 @@ const (
 	getOrderURI   = "/retail/B2b/getorder"
 )
 
+// NewOrderService 创建订单服务。
+func NewOrderService(c *client.Client) OrderService {
+	return &orderService{client: c}
+}
+
 // CloseOrder 关闭订单。
-func (s *OrderService) CloseOrder(ctx context.Context, req types.CloseOrderRequest) (*types.CloseOrderResponse, error) {
-	if s.Client == nil {
+func (s *orderService) CloseOrder(ctx context.Context, req types.CloseOrderRequest) (*types.CloseOrderResponse, error) {
+	if s.client == nil {
 		return nil, errors.New("client is nil")
 	}
 	if req.Mchid == "" {
@@ -37,13 +49,13 @@ func (s *OrderService) CloseOrder(ctx context.Context, req types.CloseOrderReque
 		return nil, err
 	}
 
-	paySig := s.Client.GetPaySig(closeOrderURI, body)
+	paySig := s.client.GetPaySig(closeOrderURI, body)
 	query := url.Values{}
-	query.Set("access_token", s.Client.TokenProvider)
+	query.Set("access_token", s.client.TokenProvider)
 	query.Set("pay_sig", paySig)
 	uri := closeOrderURI + "?" + query.Encode()
 
-	resp, err := s.Client.Do(ctx, http.MethodPost, uri, body)
+	resp, err := s.client.Do(ctx, http.MethodPost, uri, body)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +80,8 @@ func (s *OrderService) CloseOrder(ctx context.Context, req types.CloseOrderReque
 }
 
 // GetOrder 查询订单。
-func (s *OrderService) GetOrder(ctx context.Context, req types.GetOrderRequest) (*types.GetOrderResponse, error) {
-	if s.Client == nil {
+func (s *orderService) GetOrder(ctx context.Context, req types.GetOrderRequest) (*types.GetOrderResponse, error) {
+	if s.client == nil {
 		return nil, errors.New("client is nil")
 	}
 	if req.Mchid == "" {
@@ -81,13 +93,13 @@ func (s *OrderService) GetOrder(ctx context.Context, req types.GetOrderRequest) 
 		return nil, err
 	}
 
-	paySig := s.Client.GetPaySig(getOrderURI, body)
+	paySig := s.client.GetPaySig(getOrderURI, body)
 	query := url.Values{}
-	query.Set("access_token", s.Client.TokenProvider)
+	query.Set("access_token", s.client.TokenProvider)
 	query.Set("pay_sig", paySig)
 	uri := getOrderURI + "?" + query.Encode()
 
-	resp, err := s.Client.Do(ctx, http.MethodPost, uri, body)
+	resp, err := s.client.Do(ctx, http.MethodPost, uri, body)
 	if err != nil {
 		return nil, err
 	}

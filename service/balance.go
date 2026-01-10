@@ -27,7 +27,11 @@ type balanceService struct {
 	client *client.Client
 }
 
-const getMchBalanceURI = "/retail/B2b/getmchbalance"
+const (
+	getMchBalanceURI = "/retail/B2b/getmchbalance"
+	withdrawURI       = "/retail/B2b/withdraw"
+	queryWithdrawURI  = "/retail/B2b/querywithdraw"
+)
 
 // NewBalanceService 创建余额服务。
 func NewBalanceService(c *client.Client) BalanceService {
@@ -89,7 +93,55 @@ func (s *balanceService) Withdraw(ctx context.Context, req types.WithdrawRequest
 	if s == nil || s.client == nil {
 		return nil, errors.New("client is nil")
 	}
-	return nil, errors.New("not implemented")
+	if req.Mchid == "" {
+		return nil, errors.New("mchid is required")
+	}
+	if req.WithdrawAmount <= 0 {
+		return nil, errors.New("withdraw_amount is required")
+	}
+	if req.OutWithdrawNo == "" {
+		return nil, errors.New("out_withdraw_no is required")
+	}
+	if s.client.TokenProvider == "" {
+		return nil, errors.New("tokenProvider is empty")
+	}
+	if s.client.AppKeyProvider == "" {
+		return nil, errors.New("appKeyProvider is empty")
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	paySig := s.client.GetPaySig(withdrawURI, body)
+	query := url.Values{}
+	query.Set("access_token", s.client.TokenProvider)
+	query.Set("pay_sig", paySig)
+	uri := withdrawURI + "?" + query.Encode()
+
+	resp, err := s.client.Do(ctx, http.MethodPost, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("wechat api http status %d: %s", resp.StatusCode, string(raw))
+	}
+
+	var out types.WithdrawResponse
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, err
+	}
+	if out.ErrCode != 0 {
+		return &out, fmt.Errorf("wechat api error: errcode=%d errmsg=%s", out.ErrCode, out.ErrMsg)
+	}
+	return &out, nil
 }
 
 // QueryWithdraw 查询提现状态。
@@ -97,5 +149,50 @@ func (s *balanceService) QueryWithdraw(ctx context.Context, req types.QueryWithd
 	if s == nil || s.client == nil {
 		return nil, errors.New("client is nil")
 	}
-	return nil, errors.New("not implemented")
+	if req.Mchid == "" {
+		return nil, errors.New("mchid is required")
+	}
+	if req.OutWithdrawNo == "" {
+		return nil, errors.New("out_withdraw_no is required")
+	}
+	if s.client.TokenProvider == "" {
+		return nil, errors.New("tokenProvider is empty")
+	}
+	if s.client.AppKeyProvider == "" {
+		return nil, errors.New("appKeyProvider is empty")
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	paySig := s.client.GetPaySig(queryWithdrawURI, body)
+	query := url.Values{}
+	query.Set("access_token", s.client.TokenProvider)
+	query.Set("pay_sig", paySig)
+	uri := queryWithdrawURI + "?" + query.Encode()
+
+	resp, err := s.client.Do(ctx, http.MethodPost, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("wechat api http status %d: %s", resp.StatusCode, string(raw))
+	}
+
+	var out types.QueryWithdrawResponse
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, err
+	}
+	if out.ErrCode != 0 {
+		return &out, fmt.Errorf("wechat api error: errcode=%d errmsg=%s", out.ErrCode, out.ErrMsg)
+	}
+	return &out, nil
 }
