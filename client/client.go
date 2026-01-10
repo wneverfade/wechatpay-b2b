@@ -6,16 +6,12 @@ import (
 	"net/http"
 )
 
-// TokenProvider 用于获取接口调用所需的 access_token。
-type TokenProvider interface {
-	AccessToken(ctx context.Context) (string, error)
-}
-
 // Client 封装访问微信 API 的 HTTP 客户端。
 type Client struct {
-	BaseURL       string
-	TokenProvider TokenProvider
-	HTTPClient    *http.Client
+	BaseURL        string
+	TokenProvider  string // access_token
+	AppKeyProvider string // appKey（用于计算 pay_sig）
+	HTTPClient     *http.Client
 }
 
 // Do 向指定 uri（路径，不含完整域名）发起 HTTP 请求。

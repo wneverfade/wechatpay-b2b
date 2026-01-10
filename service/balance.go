@@ -2,77 +2,100 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 
 	"github.com/enjoy322/wechatpay-b2b/client"
-	"github.com/enjoy322/wechatpay-b2b/model"
+	"github.com/enjoy322/wechatpay-b2b/signer"
+	"github.com/enjoy322/wechatpay-b2b/types"
 )
 
 // BalanceService 处理余额查询与提现流程。
-type BalanceService struct {
-	Client *client.Client
+type BalanceService interface {
+	// GetBalance 查询账户余额。
+	GetBalance(ctx context.Context, req types.BalanceRequest) (*types.BalanceResponse, error)
+	// Withdraw 发起提现。
+	Withdraw(ctx context.Context, req types.WithdrawRequest) (*types.WithdrawResponse, error)
+	// QueryWithdraw 查询提现状态。
+	QueryWithdraw(ctx context.Context, req types.QueryWithdrawRequest) (*types.QueryWithdrawResponse, error)
 }
 
-// BalanceRequest 余额查询请求参数。
-type BalanceRequest struct {
-	Mchid string `json:"mchid"`
+type balanceService struct {
+	client *client.Client
 }
 
-// BalanceResponse 余额查询返回参数。
-type BalanceResponse struct {
-	BalanceList []model.BalanceInfo `json:"balance_list"`
-	ErrCode     int                 `json:"errcode"`
-	ErrMsg      string              `json:"errmsg"`
-}
+const getMchBalanceURI = "/retail/B2b/getmchbalance"
 
-// WithdrawRequest 提现请求参数。
-type WithdrawRequest struct {
-	Mchid          string `json:"mchid"`
-	WithdrawAmount int64  `json:"withdraw_amount"`
-	OutWithdrawNo  string `json:"out_withdraw_no"`
-}
-
-// WithdrawResponse 提现返回参数。
-type WithdrawResponse struct {
-	ErrCode int    `json:"errcode"`
-	ErrMsg  string `json:"errmsg"`
-}
-
-// QueryWithdrawRequest 查询提现状态请求参数。
-type QueryWithdrawRequest struct {
-	Mchid         string `json:"mchid"`
-	OutWithdrawNo string `json:"out_withdraw_no"`
-}
-
-// QueryWithdrawResponse 查询提现状态返回参数。
-type QueryWithdrawResponse struct {
-	OutWithdrawNo  string               `json:"out_withdraw_no"`
-	WithdrawAmount int64                `json:"withdraw_amount"`
-	Status         model.WithdrawStatus `json:"status"`
-	FailReason     string               `json:"fail_reason,omitempty"`
-	ErrCode        int                  `json:"errcode"`
-	ErrMsg         string               `json:"errmsg"`
+// NewBalanceService 创建余额服务。
+func NewBalanceService(c *client.Client) BalanceService {
+	return &balanceService{client: c}
 }
 
 // GetBalance 查询账户余额。
-func (s *BalanceService) GetBalance(ctx context.Context, req BalanceRequest) (*BalanceResponse, error) {
-	if s.Client == nil {
+func (s *balanceService) GetBalance(ctx context.Context, req types.BalanceRequest) (*types.BalanceResponse, error) {
+	if s == nil || s.client == nil {
 		return nil, errors.New("client is nil")
 	}
-	return nil, errors.New("not implemented")
+	if req.Mchid == "" {
+		return nil, errors.New("mchid is required")
+	}
+	if s.client.TokenProvider == "" {
+		return nil, errors.New("tokenProvider is empty")
+	}
+	if s.client.AppKeyProvider == "" {
+		return nil, errors.New("appKeyProvider is empty")
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	paySig := signer.PaySig(getMchBalanceURI, body, s.client.AppKeyProvider)
+	query := url.Values{}
+	query.Set("access_token", s.client.TokenProvider)
+	query.Set("pay_sig", paySig)
+	uri := getMchBalanceURI + "?" + query.Encode()
+
+	resp, err := s.client.Do(ctx, http.MethodPost, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("wechat api http status %d: %s", resp.StatusCode, string(raw))
+	}
+
+	var out types.BalanceResponse
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, err
+	}
+	if out.ErrCode != 0 {
+		return &out, fmt.Errorf("wechat api error: errcode=%d errmsg=%s", out.ErrCode, out.ErrMsg)
+	}
+	return &out, nil
 }
 
 // Withdraw 发起提现。
-func (s *BalanceService) Withdraw(ctx context.Context, req WithdrawRequest) (*WithdrawResponse, error) {
-	if s.Client == nil {
+func (s *balanceService) Withdraw(ctx context.Context, req types.WithdrawRequest) (*types.WithdrawResponse, error) {
+	if s == nil || s.client == nil {
 		return nil, errors.New("client is nil")
 	}
 	return nil, errors.New("not implemented")
 }
 
 // QueryWithdraw 查询提现状态。
-func (s *BalanceService) QueryWithdraw(ctx context.Context, req QueryWithdrawRequest) (*QueryWithdrawResponse, error) {
-	if s.Client == nil {
+func (s *balanceService) QueryWithdraw(ctx context.Context, req types.QueryWithdrawRequest) (*types.QueryWithdrawResponse, error) {
+	if s == nil || s.client == nil {
 		return nil, errors.New("client is nil")
 	}
 	return nil, errors.New("not implemented")
