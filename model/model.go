@@ -2,11 +2,14 @@ package model
 
 // B2B 支付相关的基础结构体定义。
 
-type Env uint8
+// Env 表示环境。
+type Env int
 
 const (
-	EnvProd Env = iota
-	EnvSandbox
+	// EnvProd 生产环境
+	EnvProd Env = 0
+	// EnvSandbox 沙箱环境
+	EnvSandbox Env = 1
 )
 
 // Amount 表示订单金额明细。
@@ -16,6 +19,7 @@ type Amount struct {
 	Discount      int64  `json:"discount,omitempty"`
 	OtherFee      int64  `json:"other_fee,omitempty"`
 	OrderAmount   int64  `json:"order_amount"`
+	PayerAmount   int64  `json:"payer_amount,omitempty"`
 	Currency      string `json:"currency,omitempty"`
 }
 
