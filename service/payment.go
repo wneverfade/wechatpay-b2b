@@ -45,7 +45,7 @@ func (s *paymentService) BuildCombinedPaymentParams(ctx context.Context, req typ
 
 	return &types.CommonPaymentParams{
 		SignData:  string(body),
-		Mode:      "0",
+		Mode:      "retail_pay_combined_goods",
 		PaySig:    s.client.GetPaySig(combinePayURI, body),
 		Signature: s.client.GetUserSignature(body),
 	}, nil

@@ -32,7 +32,7 @@ type GetOrderResponse struct {
 	PayTime               string             `json:"pay_time,omitempty"`                // 支付完成时间
 	Attach                string             `json:"attach,omitempty"`                  // 附加数据
 	PayerOpenID           string             `json:"payer_openid"`                      // 支付者
-	Amount                model.Amount       `json:"amount"`                            // 订单金额
+	Amount                Amount             `json:"amount"`                            // 订单金额
 	WxPayTransactionID    string             `json:"wxpay_transaction_id,omitempty"`    // 微信支付订单号
 	Env                   int                `json:"env"`                               // 订单环境
 	SettleStatus          uint32             `json:"settle_status"`                     // 结算状态
