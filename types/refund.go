@@ -31,11 +31,29 @@ type GetRefundRequest struct {
 
 // GetRefundResponse 查询退款返回参数。
 type GetRefundResponse struct {
-	RefundID    string             `json:"refund_id"`
-	OutRefundNo string             `json:"out_refund_no"`
-	OrderID     string             `json:"order_id"`
-	OutTradeNo  string             `json:"out_trade_no"`
-	Status      model.RefundStatus `json:"status,omitempty"`
-	ErrCode     int                `json:"errcode"`
-	ErrMsg      string             `json:"errmsg"`
+	RefundID          string             `json:"refund_id"`
+	OutRefundNo       string             `json:"out_refund_no"`
+	OrderID           string             `json:"order_id"`
+	OutTradeNo        string             `json:"out_trade_no"`
+	CreateTime        string             `json:"create_time"`
+	RefundTime        string             `json:"refund_time"`
+	RefundDesc        string             `json:"refund_desc"`
+	WxpayRefundID     string             `json:"wxpay_refund_id"`
+	ReverseSettAmt    int                `json:"reverse_sett_amt"`
+	Amount            RefundAmount       `json:"amount"`
+	Description       string             `json:"description"`
+	RefundStatus      model.RefundStatus `json:"refund_status"`
+	RefundChannelInfo RefundChannelInfo  `json:"refund_channel_info"`
+	ErrCode           int                `json:"errcode"`
+	ErrMsg            string             `json:"errmsg"`
+}
+
+type RefundAmount struct {
+	OrderAmount  int `json:"order_amount"`
+	RefundAmount int `json:"refund_amount"`
+}
+
+type RefundChannelInfo struct {
+	FundsAccount        string `json:"funds_account"`
+	UserReceivedAccount string `json:"user_received_account"`
 }

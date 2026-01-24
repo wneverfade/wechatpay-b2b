@@ -14,14 +14,15 @@ type Order struct {
 
 // CombinedOrder 表示合单中的子单参数。
 type CombinedOrder struct {
-	Mchid        string       `json:"mchid"`
-	AppKey       string       `json:"app_key"`
-	OutTradeNo   string       `json:"out_trade_no"`
-	Description  string       `json:"description"`
-	Amount       Amount       `json:"amount"`
-	Attach       string       `json:"attach,omitempty"`
-	DeliveryType uint32       `json:"delivery_type,omitempty"`
-	ProductInfo  *ProductInfo `json:"product_info,omitempty"`
+	Mchid             string       `json:"mchid"`
+	AppKey            string       `json:"app_key"`
+	OutTradeNo        string       `json:"out_trade_no"`
+	Description       string       `json:"description"`
+	Amount            Amount       `json:"amount"`
+	Attach            string       `json:"attach,omitempty"`
+	DeliveryType      uint32       `json:"delivery_type,omitempty"`
+	ProductInfo       *ProductInfo `json:"product_info,omitempty"`
+	NeedProfitSharing int          `json:"need_profit_sharing"` // 0 不分账 1 分账
 }
 
 // ProductInfo 表示商品信息。

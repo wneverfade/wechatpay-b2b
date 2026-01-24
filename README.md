@@ -26,6 +26,9 @@ go get github.com/enjoy322/wechatpay-b2b
 |-----|-----|-----|
 | `GetMerchantInfo` | 获取小程序下所有商户的信息 | `/retail/B2b/getmchinfo` |
 | `GetMerchantAppKey` | 查询商户的 appKey | `/retail/B2b/getappkey` |
+| `GetBalance` | 查询账户余额 | `/retail/B2b/getmchbalance` |
+| `Withdraw` | 发起提现 | `/retail/B2b/withdraw` |
+| `QueryWithdraw` | 查询提现状态 | `/retail/B2b/querywithdraw` |
 
 ### 订单服务 (OrderService)
 
@@ -33,21 +36,12 @@ go get github.com/enjoy322/wechatpay-b2b
 |-----|-----|-----|
 | `CloseOrder` | 关闭订单 | `/retail/B2b/closeb2border` |
 | `GetOrder` | 查询订单 | `/retail/B2b/getorder` |
-
-### 退款服务 (RefundService)
-
-| 方法 | 功能 | URI |
-|-----|-----|-----|
 | `CreateRefund` | 发起退款 | `/retail/B2b/createrefund` |
 | `GetRefund` | 查询退款 | `/retail/B2b/getrefund` |
+| `BuildPaymentParams` | 生成单订单支付参数 | `requestCommonPayment` |
+| `BuildCombinedPaymentParams` | 生成合单支付参数 | `requestCommonPayment` |
 
-### 余额服务 (BalanceService)
-
-| 方法 | 功能 | URI |
-|-----|-----|-----|
-| `GetBalance` | 查询账户余额 | `/retail/B2b/getmchbalance` |
-| `Withdraw` | 发起提现 | `/retail/B2b/withdraw` |
-| `QueryWithdraw` | 查询提现状态 | `/retail/B2b/querywithdraw` |
+`BuildPaymentParams` / `BuildCombinedPaymentParams` 仅生成小程序支付参数，不发起 HTTP 请求。
 
 ### 分账服务 (ProfitService)
 
@@ -80,9 +74,9 @@ go get github.com/enjoy322/wechatpay-b2b
 
 - `access_token`：保存在 `client.Client` 内，业务侧定时刷新并更新即可。
 - `appKey`：不保存在 `client.Client` 内，调用需要 `pay_sig` 的服务时传入（建议按商户号维度维护 `map[mchid]appKey`）。
-- `session_key`：不保存在 `client.Client` 内，调用 `PaymentService.BuildPaymentParams` / `BuildCombinedPaymentParams` 时传入，用于计算 `signature`。
+- `session_key`：不保存在 `client.Client` 内，调用 `OrderService.BuildPaymentParams` / `BuildCombinedPaymentParams` 时传入，用于计算 `signature`。
 
-因此调用 `service.BalanceService.GetBalance` 等方法时，需要显式传入 `appKey`，但 `access_token` 只需在 `client.Client` 内保持最新即可。
+因此调用 `service.MerchantService.GetBalance` 等方法时，需要显式传入 `appKey`，但 `access_token` 只需在 `client.Client` 内保持最新即可。
 
 建议直接替换整个 `client.Client` 实例。
 

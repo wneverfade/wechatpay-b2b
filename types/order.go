@@ -35,10 +35,10 @@ type GetOrderResponse struct {
 	Amount                Amount             `json:"amount"`                            // 订单金额
 	WxPayTransactionID    string             `json:"wxpay_transaction_id,omitempty"`    // 微信支付订单号
 	Env                   int                `json:"env"`                               // 订单环境
-	SettleStatus          uint32             `json:"settle_status"`                     // 结算状态
+	SettleStatus          int                `json:"settle_status"`                     // 结算状态
 	SettleFinishTime      string             `json:"settle_finish_time,omitempty"`      // 结算完成时间
-	PlatformProfitPercent uint64             `json:"platform_profit_percent,omitempty"` // 技术服务费率
-	PlatformProfitFee     uint64             `json:"platform_profit_fee,omitempty"`     // 技术服务费
+	PlatformProfitPercent int                `json:"platform_profit_percent,omitempty"` // 技术服务费率
+	PlatformProfitFee     int                `json:"platform_profit_fee,omitempty"`     // 技术服务费
 	BankType              string             `json:"bank_type,omitempty"`               // 银行类型
 	RefundStatus          model.RefundStatus `json:"refund_status,omitempty"`           // 退款状态
 	ErrCode               int                `json:"errcode,omitempty"`                 // 错误码

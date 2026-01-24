@@ -9,7 +9,7 @@ const (
 	// RefundProcessing 处理中
 	RefundProcessing RefundStatus = "REFUND_PROCESSING"
 	// RefundSuccess 成功
-	RefundSuccess RefundStatus = "REFUND_SUCCESS"
+	RefundSuccess RefundStatus = "REFUND_SUCC"
 	// RefundFail 失败
 	RefundFail RefundStatus = "REFUND_FAIL"
 )
