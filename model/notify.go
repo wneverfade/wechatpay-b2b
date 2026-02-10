@@ -29,20 +29,22 @@ type PaymentAmount struct {
 
 // RefundNotify 表示退款通知的 JSON 结构体。
 type RefundNotify struct {
-	ToUserName         string `json:"ToUserName"`           // 公众号/小程序ID
-	FromUserName       string `json:"FromUserName"`         // 用户OpenID
-	CreateTime         int64  `json:"CreateTime"`           // 创建时间
-	MsgType            string `json:"MsgType"`              // 消息类型
-	Event              string `json:"Event"`                // 事件类型
-	AppID              string `json:"appid"`                // 小程序ID
-	Mchid              string `json:"mchid"`                // 微信商户号
-	OutTradeNo         string `json:"out_trade_no"`         // 商户订单号
-	OrderID            string `json:"order_id"`             // B2b支付订单号
-	OutRefundNo        string `json:"out_refund_no"`        // 商户退款单号
-	RefundID           string `json:"refund_id"`            // 微信退款订单号
-	RefundStatus       string `json:"refund_status"`        // 退款状态
-	RefundTime         string `json:"refund_time"`          // 退款完成时间
-	PayerAmount        int64  `json:"payer_amount"`         // 退款金额
-	WxPayTransactionID string `json:"wxpay_transaction_id"` // 微信支付订单号
-	Env                int    `json:"env"`                  // 订单环境
+	ToUserName   string `json:"ToUserName"`    // 公众号/小程序ID
+	FromUserName string `json:"FromUserName"`  // 用户OpenID
+	CreateTime   int64  `json:"CreateTime"`    // 创建时间
+	MsgType      string `json:"MsgType"`       // 消息类型
+	Event        string `json:"Event"`         // 事件类型 retail_refund_notify
+	AppID        string `json:"appid"`         // 小程序ID
+	Mchid        string `json:"mchid"`         // 微信商户号
+	OutTradeNo   string `json:"out_trade_no"`  // 商户订单号
+	OutRefundNo  string `json:"out_refund_no"` // 商户退款单号
+	RefundID     string `json:"refund_id"`     // 微信退款订单号
+	RefundStatus string `json:"refund_status"` // 退款状态
+	RefundTime   string `json:"refund_time"`   // 退款完成时间
+	RefundAmount int64  `json:"refund_amount"` // 退款金额
+	OrderAmount  int64  `json:"order_amount"`  // 订单金额
+	RefundFrom   string `json:"refund_from"`   // 退款来源
+	RefundReason string `json:"refund_reason"` // 退款原因
+	Description  string `json:"description"`   // 退款描述
+	Env          int    `json:"env"`           // 订单环境
 }
