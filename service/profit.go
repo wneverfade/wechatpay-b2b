@@ -15,7 +15,6 @@ import (
 // 未对接接口
 // QueryProfitSharingRemainAmt 查询分账剩余金额。
 // DelProfitSharingAccount 删除分账方。
-// QueryProfitSharingReturn 查询分账回退。
 
 // ProfitService 处理分账相关调用。
 type ProfitService interface {
@@ -27,6 +26,8 @@ type ProfitService interface {
 	ProfitSharingFinish(ctx context.Context, req types.ProfitSharingFinishRequest, appKey string) (*types.ProfitSharingFinishResponse, error)
 	// ProfitSharingReturn 分账回退。
 	ProfitSharingReturn(ctx context.Context, req types.ProfitSharingReturnRequest, appKey string) (*types.ProfitSharingReturnResponse, error)
+	// QueryProfitSharingReturn 查询分账回退结果。
+	QueryProfitSharingReturn(ctx context.Context, req types.QueryProfitSharingReturnRequest, appKey string) (*types.QueryProfitSharingReturnResponse, error)
 	// AddProfitSharingAccount 添加分账方。
 	AddProfitSharingAccount(ctx context.Context, req types.AddProfitSharingAccountRequest, appKey string) (*types.AddProfitSharingAccountResponse, error)
 	// QueryProfitSharingAccount 查询分账方。
@@ -46,7 +47,8 @@ const (
 	profitSharingFinishURI = "/retail/B2b/finishprofitsharingorder"
 	// 分账回退接口
 	profitSharingReturnURI = "/retail/B2b/refundprofitsharing"
-	// queryProfitSharingReturn = "/retail/B2b/queryprofitsharingreturn"
+	// 查询分账回退结果接口
+	queryProfitSharingReturnURI = "/retail/B2b/queryrefundprofitsharingorder"
 	// 添加分账方接口
 	addProfitSharingAccountURI = "/retail/B2b/addprofitsharingaccount"
 	// 删除分账方接口
@@ -247,6 +249,58 @@ func (s *profitService) ProfitSharingReturn(ctx context.Context, req types.Profi
 	}
 
 	var out types.ProfitSharingReturnResponse
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, err
+	}
+	if out.ErrCode != 0 {
+		return &out, fmt.Errorf("wechat api error: errcode=%d errmsg=%s", out.ErrCode, out.ErrMsg)
+	}
+	return &out, nil
+}
+
+// QueryProfitSharingReturn 查询分账回退结果。
+func (s *profitService) QueryProfitSharingReturn(ctx context.Context, req types.QueryProfitSharingReturnRequest, appKey string) (*types.QueryProfitSharingReturnResponse, error) {
+	if s.client == nil {
+		return nil, errors.New("client is nil")
+	}
+	if req.OutTradeNo == "" {
+		return nil, errors.New("out_trade_no is required")
+	}
+	if req.OutRefundNo == "" {
+		return nil, errors.New("out_refund_no is required")
+	}
+	if req.Mchid == "" {
+		return nil, errors.New("mchid is required")
+	}
+	if req.PayeeType == "" {
+		return nil, errors.New("payee_type is required")
+	}
+	if req.PayeeID == "" {
+		return nil, errors.New("payee_id is required")
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	uri := s.client.BuildURIWithAuthAndSig(queryProfitSharingReturnURI, body, appKey)
+
+	resp, err := s.client.Do(ctx, http.MethodPost, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("wechat api http status %d: %s", resp.StatusCode, string(raw))
+	}
+
+	var out types.QueryProfitSharingReturnResponse
 	if err := json.Unmarshal(raw, &out); err != nil {
 		return nil, err
 	}

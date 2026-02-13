@@ -1,7 +1,5 @@
 package types
 
-import "github.com/wneverfade/wechatpay-b2b/model"
-
 // ProfitSharingRequest 请求分账参数。
 type ProfitSharingRequest struct {
 	Mchid           string `json:"mchid"`            // 微信商户号
@@ -62,20 +60,18 @@ type ProfitSharingReturnResponse struct {
 
 // QueryProfitSharingReturnRequest 查询分账回退参数。
 type QueryProfitSharingReturnRequest struct {
-	Mchid       string `json:"mchid"`               // 微信商户号
-	OutReturnNo string `json:"out_return_no"`       // 商户回退订单号
-	ReturnID    string `json:"return_id,omitempty"` // 回退订单号
+	OutTradeNo  string `json:"out_trade_no"`  // 订单 id，在B2b小程序中下单后返回的订单 id，官网文档值为order_id
+	OutRefundNo string `json:"out_refund_no"` // 退款单 id，在B2b小程序中下单后返回的退款单 id
+	Mchid       string `json:"mchid"`         // 发起这笔订单的商户号
+	PayeeType   string `json:"payee_type"`    // 退款分账方类型，同添加分账方时填入的内容
+	PayeeID     string `json:"payee_id"`      // 退款分账方 id，同添加分账方时填入的内容
 }
 
 // QueryProfitSharingReturnResponse 查询分账回退返回参数。
 type QueryProfitSharingReturnResponse struct {
-	ReturnID    string                   `json:"return_id"`     // 回退订单号
-	OutReturnNo string                   `json:"out_return_no"` // 商户回退订单号
-	OrderID     string                   `json:"order_id"`      // 分账订单号
-	Amount      int64                    `json:"amount"`        // 回退金额
-	Status      model.ProfitReturnStatus `json:"status"`        // 回退状态
-	ErrCode     int                      `json:"errcode"`
-	ErrMsg      string                   `json:"errmsg"`
+	OrderStatus uint32 `json:"order_status"` // 订单状态：1 分账退回中，2 分账退回完成，3 分账退回失败
+	ErrCode     int    `json:"errcode"`
+	ErrMsg      string `json:"errmsg"`
 }
 
 // AddProfitSharingAccountRequest 添加分账方请求参数。
